@@ -1,0 +1,10 @@
+{
+  "name": "DeckyBoard",
+  "author": "Kieran Coldron",
+  "flags": ["_root","debug"],
+  "publish": {
+    "tags": ["keyboard"],
+    "description": "Decky example plugin.",
+    "image": "https://opengraph.githubassets.com/1/SteamDeckHomebrew/PluginLoader"
+  }
+}
