@@ -1,0 +1,26 @@
+[
+    {
+      "id": "start-dictate",
+      "execute-command": "/home/deck/nerd-dictation/nerd-dictation",
+      "pass-arguments-to-command": [
+        { "source": "string", "name": "begin"},
+        { "source": "string", "name": "--vosk-model-dir=/home/deck/.config/nerd-dictation/model"},
+        { "source": "string", "name": "--simulate-input-tool=YDOTOOL"},
+        { "source": "string", "name": "--pulse-device-name=alsa_input.pci-0000_04_00.5-platform-acp5x_mach.0.HiFi__hw_acp5x_0__source"}
+      ],
+      "command-working-directory": "/home/deck/"
+    },
+    {
+        "id": "end-dictate",
+        "execute-command": "/home/deck/nerd-dictation/nerd-dictation",
+        "pass-arguments-to-command": [
+          { "source": "string", "name": "end"}
+        ],
+        "command-working-directory": "/home/deck/"
+    },
+    {
+        "id": "type-f",
+        "execute-command": "ydotool key F1",
+        "command-working-directory": "/home/deck/"
+    }
+  ]
