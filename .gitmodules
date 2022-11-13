@@ -1,0 +1,3 @@
+[submodule "out/out/nd"]
+	path = out/out/nd
+	url = https://github.com/ideasman42/nerd-dictation

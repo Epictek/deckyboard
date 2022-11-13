@@ -11,7 +11,7 @@ import {
 } from "decky-frontend-lib";
 import { VFC } from "react";
 import { FaShip, FaMicrophone } from "react-icons/fa";
-
+import { log } from "./logger";
 const Content: VFC<{ serverAPI: ServerAPI }> = ({}) => {
   return (
     <PanelSection title="Panel Section">
@@ -21,13 +21,11 @@ const Content: VFC<{ serverAPI: ServerAPI }> = ({}) => {
   );
 };
 
-
 var settings = {
   FKeys: true,
   Dictation: true,
   CtrlKey: true
 } 
-
 
 export default definePlugin((serverApi: ServerAPI) => {
     const KeyboardManager = findModuleChild((m) => {
@@ -42,36 +40,80 @@ export default definePlugin((serverApi: ServerAPI) => {
   var KeyboardRoot: any;
 
 
+  let instance = findInReactTree(
+    (document.getElementById('root') as any)._reactRootContainer._internalRoot.current,
+    (x) => x?.memoizedProps?.className?.startsWith?.('virtualkeyboard_Keyboard'),
+  );
+  log("opened", instance)
+
+
+
   const KeyboardOpen = (e: boolean) => {
+    log("opened", e)
     if (!e) return;
 
       let instance = findInReactTree(
         (document.getElementById('root') as any)._reactRootContainer._internalRoot.current,
         (x) => x?.memoizedProps?.className?.startsWith?.('virtualkeyboard_Keyboard'),
       );
+      log("opened", instance)
+
       if (instance) {
         KeyboardRoot = instance.return;
-        console.log(KeyboardRoot)
+
+
+        log("keys", KeyboardRoot)
+        
+        if (hasInjectedButtons) return;
+          hasInjectedButtons = true
+        if (settings.Dictation){
+          log("keys", KeyboardRoot.stateNode.state.standardLayout.rgLayout)
+
+          KeyboardRoot.stateNode.state.standardLayout.rgLayout[4].unshift({key: "SwitchKeys_Dicate", label: <FaMicrophone/>, type: 4})
+        }
+        if (settings.CtrlKey){
+          log("keys", KeyboardRoot.stateNode.state.standardLayout.rgLayout)
+
+          KeyboardRoot.stateNode.state.standardLayout.rgLayout[4].unshift({key: "Control", label: "#Key_Control",  type: 5})
+        }
+        if (settings.FKeys){
+          // log("keys", KeyboardRoot.stateNode.state.standardLayout.rgLayout)
+          // KeyboardRoot.stateNode.state.standardLayout.rgLayout.unshift({key: "", label: "#KeyboardKey_F1",  type: 5})
+          // KeyboardRoot.stateNode.state.standardLayout.rgLayout[0].unshift({key: "Escape", label: "#Key_Escape",  type: 5})
+
+        }
+
         beforePatch( KeyboardRoot.stateNode, 'TypeKeyInternal', (e: any[]) => {
-          console.log(KeyboardRoot)
+          log("stateNode", KeyboardRoot.stateNode)
 
           const key = e[0];
+          if (key.strKey == "SwitchKeys_") {
+
+            serverApi.fetchNoCors('http://localhost:9000/hooks/ydotool?key=41')
+            .then((data) => console.log(data));
+            }
+
           if (settings.Dictation){
             if (key.strKey == "SwitchKeys_Dicate") {
                 if (!dictateListening) {
                   dictateListening = true;
-                  serverApi.fetchNoCors('http://localhost:9000/hooks/start-dictate')
-                    .then((data) => console.log(data));
-                    KeyboardRoot.stateNode.state.standardLayout.rgLayout[5][1].label = <ActiveIcon/>;
-                  serverApi.toaster.toast({
-                    title: "Listening...",
-                    body: "Dictation started!"
-                  });
+                  var response = serverApi.callPluginMethod<any, boolean>("startDictation", { });
+                  log("startDictation", response)
+
+                  // serverApi.fetchNoCors('http://localhost:9000/hooks/start-dictate')
+                  //   .then((data) => console.log(data));
+                     KeyboardRoot.stateNode.state.standardLayout.rgLayout[4][1].label = <ActiveIcon/>;
+                       serverApi.toaster.toast({
+                       title: "Listening...",
+                       body: "Dictation started!"
+                   });
                 } else {
                   dictateListening = false;
-                  serverApi.fetchNoCors('http://localhost:9000/hooks/end-dictate')
-                    .then((data) => console.log(data));
-                    KeyboardRoot.stateNode.state.standardLayout.rgLayout[5][1].label = <FaMicrophone/>;
+                  var response = serverApi.callPluginMethod<any, boolean>("endDictation", { });
+                  log("endDictate", response)
+                  // serverApi.fetchNoCors('http://localhost:9000/hooks/end-dictate')
+                  //   .then((data) => console.log(data));
+                  KeyboardRoot.stateNode.state.standardLayout.rgLayout[4][1].label = <FaMicrophone/>;
                   serverApi.toaster.toast({
                     title: "Finished Listening.",
                     body: "Dictation finished!"
@@ -82,18 +124,8 @@ export default definePlugin((serverApi: ServerAPI) => {
 
           return KeyboardRoot.stateNode;
         });
-        console.log(KeyboardRoot)
-        if (hasInjectedButtons) return;
-	hasInjectedButtons = true
-        if (settings.Dictation){
-          KeyboardRoot.stateNode.state.standardLayout.rgLayout[4].unshift({key: "SwitchKeys_Dicate", label: <FaMicrophone/>, type: 4})
-        }
-        if (settings.CtrlKey){
-          KeyboardRoot.stateNode.state.standardLayout.rgLayout[4].unshift({key: "Control", label: "#Key_Control",  type: 5})
-        }
-        if (settings.FKeys){
-          KeyboardRoot.stateNode.state.standardLayout.rgLayout.unshift(["ESC", "F1","F2", "F3", "F4","F5", "F6","F7","F8", "F9","F10","F11", "F12"])
-        }
+
+
         return;
       }
   };

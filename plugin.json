@@ -1,7 +1,7 @@
 {
   "name": "DeckyBoard",
   "author": "Kieran Coldron",
-  "flags": ["_root","debug"],
+  "flags": ["root","debug"],
   "publish": {
     "tags": ["keyboard"],
     "description": "Decky example plugin.",
